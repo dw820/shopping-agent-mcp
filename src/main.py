@@ -30,6 +30,7 @@ def get_env_vars() -> dict:
         "BROWSER_USE_PROFILE_ID": os.getenv("BROWSER_USE_PROFILE_ID"),
         "TARGET_EMAIL": os.getenv("TARGET_EMAIL"),
         "TARGET_PASSWORD": os.getenv("TARGET_PASSWORD"),
+        "PHONE_NUMBER": os.getenv("PHONE_NUMBER"),
     }
     
     missing = [k for k, v in required.items() if not v]
@@ -39,8 +40,28 @@ def get_env_vars() -> dict:
     return required
 
 
-async def run_target_shopping_task():
-    """Run the Target.com shopping automation task."""
+async def run_target_shopping_task(
+    product_name: str,
+    first_name: str,
+    last_name: str,
+    address: str,
+    unit: str,
+    city: str,
+    state: str,
+    zip_code: str,
+):
+    """Run the Target.com shopping automation task.
+    
+    Args:
+        product_name: Product to search for
+        first_name: Shipping first name
+        last_name: Shipping last name
+        address: Street address
+        unit: Apartment/unit number
+        city: City name
+        state: State abbreviation (e.g., CA)
+        zip_code: ZIP code
+    """
     
     # Get environment variables
     env = get_env_vars()
@@ -74,20 +95,47 @@ Go to Target.com (https://www.target.com) and complete the following steps:
    - Do NOT sign up for anything extra, do NOT enable notifications
    - Your goal is to get to the main Target homepage as quickly as possible
 
-3. ADD RANDOM ITEM TO CART:
-   - Once on the homepage, browse or search for any product (e.g., "snacks", "toys", "electronics")
-   - Click on any product to view its details
-   - Add the item to your cart
-   
-4. VERIFY:
+3. SEARCH AND FIND PRODUCT:
+   - Use the search bar to search for: "{product_name}"
+   - Look through the search results
+   - Find the product that is:
+     a) Most relevant/similar to "{product_name}"
+     b) Has the LOWEST price among the relevant options
+   - If there are multiple similar products, prioritize the cheapest one
+   - Click on that product to view its details
+
+4. ADD TO CART:
+   - Add the selected item to your cart
    - Confirm the item was added to cart (you should see cart count increase)
-   - DO NOT proceed to checkout
-   - Report what item you added to the cart
+
+5. PROCEED TO CHECKOUT:
+   - Click on the cart icon to view your cart
+   - Click "Checkout" or "I'm ready to check out" button
+   - If asked to select a shipping method, choose "Shipping" (not pickup)
+
+6. FILL SHIPPING ADDRESS:
+   - Fill in the shipping address form with the following information:
+     - First Name: {first_name}
+     - Last Name: {last_name}
+     - Address: {address}
+     - Apartment/Unit: {unit}
+     - City: {city}
+     - State: {state}
+     - ZIP Code: {zip_code}
+     - Phone Number: {env["PHONE_NUMBER"]}
+   - Save or continue to the next step after filling the address
+
+7. STOP AND SCREENSHOT:
+   - Once you reach the final order review page (where you can see "Place your order" button)
+   - Take a screenshot of the page
+   - DO NOT click "Place your order" - stop here
+   - Report what item is in the cart and the total amount
 
 IMPORTANT: 
 - Skip all promotional popups, newsletter signups, and notification requests
-- Do not checkout or enter any payment information
-- Just add ONE item to the cart and stop
+- If you see ANY feedback popup like "Got a minute?" or survey requests, immediately click "No Thanks", "X", or any close/dismiss button - do NOT engage with them
+- DO NOT click "Place your order" - only go up to the final review page
+- If asked for payment info, you can skip or use any saved payment method, but DO NOT complete the purchase
 """
 
     try:
@@ -118,7 +166,17 @@ IMPORTANT:
 async def main():
     """Main entry point."""
     try:
-        await run_target_shopping_task()
+        # Example usage with product search and shipping info
+        await run_target_shopping_task(
+            product_name="protein bars",
+            first_name="Wei",
+            last_name="Tu",
+            address="101 Polk St",
+            unit="Unit 1113",
+            city="San Francisco",
+            state="CA",
+            zip_code="94102",
+        )
     except ValueError as e:
         print(f"\n⚠️ Configuration error: {e}")
         print("   Please check your .env file has all required variables.")
