@@ -1,5 +1,4 @@
 README.md
-main.py
 pyproject.toml
 shopping_agent_mcp.egg-info/PKG-INFO
 shopping_agent_mcp.egg-info/SOURCES.txt

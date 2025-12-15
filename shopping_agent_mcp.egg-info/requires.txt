@@ -1,3 +1,4 @@
+beautifulsoup4>=4.14.3
 browser-use-sdk>=2.0.12
-mcp
+mcp>=1.24.0
 python-dotenv

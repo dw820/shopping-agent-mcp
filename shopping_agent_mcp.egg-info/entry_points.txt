@@ -1,2 +1,2 @@
 [console_scripts]
-main = main:main
+main = src.main:main

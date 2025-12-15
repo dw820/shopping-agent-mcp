@@ -8,16 +8,21 @@ This MCP server exposes a tool that uses browser-use-sdk to:
 """
 
 import asyncio
+import logging
 import os
 from dotenv import load_dotenv
 from browser_use_sdk import BrowserUse
-from mcp.server import Server
+from mcp.server.fastmcp import FastMCP
 
 # Load environment variables
 load_dotenv()
 
+# Suppress logs for clean output
+for logger_name in ("mcp", "httpx", "uvicorn", "uvicorn.access", "uvicorn.error"):
+    logging.getLogger(logger_name).setLevel(logging.CRITICAL)
+
 # Create the MCP server
-server = Server("shopping-agent")
+mcp = FastMCP("shopping-agent")
 
 
 def get_env_vars() -> dict:
@@ -174,7 +179,8 @@ IMPORTANT:
         print(f"\n🛑 Session complete (profile state preserved)")
 
 
-@server.tool()
+
+@mcp.tool()
 async def shop_product(
     product_name: str,
     first_name: str,
@@ -220,28 +226,14 @@ async def shop_product(
     )
 
 
-async def main():
-    """Main entry point for local testing."""
-    try:
-        # Example usage with product search and shipping info
-        result = await run_target_shopping_task(
-            product_name="protein bars",
-            first_name="Wei",
-            last_name="Tu",
-            address="101 Polk St",
-            unit="Unit 1113",
-            city="San Francisco",
-            state="CA",
-            zip_code="94102",
-        )
-        print(f"\nResult: {result}")
-    except ValueError as e:
-        print(f"\n⚠️ Configuration error: {e}")
-        print("   Please check your .env file has all required variables.")
-    except Exception as e:
-        print(f"\n❌ Error: {e}")
-        raise
+def main() -> None:
+    """Start the MCP server."""
+    print("🛒 Starting Shopping Agent MCP Server...")
+    print("🔧 Available tools: shop_product")
+    print()
+    mcp.run(transport="streamable-http")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
+

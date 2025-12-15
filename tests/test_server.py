@@ -11,30 +11,29 @@ def test_server():
     """Test all server functionality."""
     print("Testing Shopping Agent MCP Server\n")
 
-    # Import server functions
+    # Import server
     try:
-        from src.main import hello, placeholder_tool
+        from src.main import mcp, shop_product
         print("[OK] Server modules imported successfully")
     except ImportError as e:
         print(f"[ERROR] Failed to import server: {e}")
         return False
 
-    # Test 1: Hello tool
-    print("\nTest 1: Hello tool...")
-    result = hello("World")
-    if result == "Hello, World!":
-        print(f"[OK] hello('World') = '{result}'")
+    # Test 1: mcp is a FastMCP instance
+    print("\nTest 1: Server instance...")
+    from mcp.server.fastmcp import FastMCP
+    if isinstance(mcp, FastMCP):
+        print(f"[OK] mcp is FastMCP instance")
     else:
-        print(f"[ERROR] Unexpected result: {result}")
+        print(f"[ERROR] mcp is not FastMCP instance: {type(mcp)}")
         return False
 
-    # Test 2: Placeholder tool
-    print("\nTest 2: Placeholder tool...")
-    result = placeholder_tool("test")
-    if result.get("status") == "success":
-        print(f"[OK] placeholder_tool('test') = {result}")
+    # Test 2: shop_product tool is registered
+    print("\nTest 2: Tool registration...")
+    if shop_product is not None:
+        print(f"[OK] shop_product tool is defined")
     else:
-        print(f"[ERROR] Unexpected result: {result}")
+        print(f"[ERROR] shop_product tool not found")
         return False
 
     print("\n" + "=" * 50)
