@@ -1,0 +1,12 @@
+README.md
+main.py
+pyproject.toml
+shopping_agent_mcp.egg-info/PKG-INFO
+shopping_agent_mcp.egg-info/SOURCES.txt
+shopping_agent_mcp.egg-info/dependency_links.txt
+shopping_agent_mcp.egg-info/entry_points.txt
+shopping_agent_mcp.egg-info/requires.txt
+shopping_agent_mcp.egg-info/top_level.txt
+src/__init__.py
+src/main.py
+tests/test_server.py

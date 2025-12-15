@@ -1,0 +1,20 @@
+[project]
+name = "shopping-agent-mcp"
+version = "1.0.0"
+description = "MCP server for shopping agent"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp",
+    "python-dotenv",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["src"]
+py-modules = ["main"]
+
+[project.scripts]
+main = "main:main"
