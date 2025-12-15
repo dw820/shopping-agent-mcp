@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
-"""Shopping Agent - Target.com Browser Automation.
+"""Shopping Agent MCP Server - Target.com Browser Automation.
 
-This script uses browser-use-sdk to:
+This MCP server exposes a tool that uses browser-use-sdk to:
 1. Login to Target.com with credentials from environment
 2. Skip any popups/prompts after login
-3. Add a random item to the shopping cart (without checkout)
+3. Search for a product, add to cart, and proceed to checkout
 """
 
 import asyncio
 import os
 from dotenv import load_dotenv
 from browser_use_sdk import BrowserUse
+from mcp.server import Server
 
 # Load environment variables
 load_dotenv()
+
+# Create the MCP server
+server = Server("shopping-agent")
 
 
 def get_env_vars() -> dict:
@@ -49,7 +53,7 @@ async def run_target_shopping_task(
     city: str,
     state: str,
     zip_code: str,
-):
+) -> str:
     """Run the Target.com shopping automation task.
     
     Args:
@@ -61,6 +65,9 @@ async def run_target_shopping_task(
         city: City name
         state: State abbreviation (e.g., CA)
         zip_code: ZIP code
+        
+    Returns:
+        Result message describing what was accomplished
     """
     
     # Get environment variables
@@ -153,21 +160,71 @@ IMPORTANT:
         # Wait for the task to complete
         result = task.complete()
         
+        output = result.output if hasattr(result, 'output') else str(result)
         print(f"\n✅ Task completed!")
-        print(f"   Output: {result.output if hasattr(result, 'output') else result}")
+        print(f"   Output: {output}")
+        
+        return f"Shopping task completed successfully. {output}"
         
     except Exception as e:
-        print(f"\n❌ Task failed: {e}")
-        raise
+        error_msg = f"Task failed: {e}"
+        print(f"\n❌ {error_msg}")
+        return error_msg
     finally:
         print(f"\n🛑 Session complete (profile state preserved)")
 
 
+@server.tool()
+async def shop_product(
+    product_name: str,
+    first_name: str,
+    last_name: str,
+    address: str,
+    unit: str,
+    city: str,
+    state: str,
+    zip_code: str,
+) -> str:
+    """Shop for a product on Target.com and proceed to checkout.
+    
+    This tool will:
+    1. Login to Target.com
+    2. Search for the specified product
+    3. Find the cheapest relevant option
+    4. Add it to cart
+    5. Proceed to checkout with the provided shipping address
+    6. Stop at the final review page (does NOT complete the purchase)
+    
+    Args:
+        product_name: The product to search for (e.g., "protein bars")
+        first_name: Shipping first name
+        last_name: Shipping last name
+        address: Street address (e.g., "101 Polk St")
+        unit: Apartment/unit number (e.g., "Unit 1113")
+        city: City name (e.g., "San Francisco")
+        state: State abbreviation (e.g., "CA")
+        zip_code: ZIP code (e.g., "94102")
+        
+    Returns:
+        A message describing what was accomplished and the order total
+    """
+    return await run_target_shopping_task(
+        product_name=product_name,
+        first_name=first_name,
+        last_name=last_name,
+        address=address,
+        unit=unit,
+        city=city,
+        state=state,
+        zip_code=zip_code,
+    )
+
+
 async def main():
-    """Main entry point."""
+    """Main entry point for local testing."""
     try:
         # Example usage with product search and shipping info
-        await run_target_shopping_task(
+        result = await run_target_shopping_task(
             product_name="protein bars",
             first_name="Wei",
             last_name="Tu",
@@ -177,6 +234,7 @@ async def main():
             state="CA",
             zip_code="94102",
         )
+        print(f"\nResult: {result}")
     except ValueError as e:
         print(f"\n⚠️ Configuration error: {e}")
         print("   Please check your .env file has all required variables.")
