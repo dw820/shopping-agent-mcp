@@ -4,6 +4,7 @@ version = "1.0.0"
 description = "MCP server for shopping agent"
 requires-python = ">=3.10"
 dependencies = [
+    "browser-use-sdk>=2.0.12",
     "mcp",
     "python-dotenv",
 ]
