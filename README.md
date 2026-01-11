@@ -1,90 +1,182 @@
 # Shopping Agent MCP Server
 
-> **Automated Target.com shopping agent** — Search products, add to cart, and fill checkout with a single function call.
+A Model Context Protocol (MCP) server that provides shopping automation capabilities through AI agents.
 
-## Overview
+## Features
 
-This shopping agent uses [Browser Use SDK](https://browser-use.com) to automate the Target.com shopping experience. It maintains persistent login state via browser profiles and can:
+- **Product Shopping Tool**: Automatically search and purchase products online
+- **Browser Automation**: Uses browser automation for seamless shopping experiences
+- **Environment Configuration**: Secure configuration through environment variables
+- **FastMCP Integration**: Built on the FastMCP framework for high-performance MCP servers
 
-- 🔐 **Login** to Target.com with stored credentials
-- 🔍 **Search** for specific products by name
-- 💰 **Find the cheapest** relevant product from search results
-- 🛒 **Add to cart** and proceed to checkout
-- 📦 **Fill shipping address** with provided information
-- 📸 **Stop before purchase** with screenshot of final order review
+## Prerequisites
 
-### Core Function: `run_target_shopping_task()`
+- Python 3.8 or higher
+- Browser automation dependencies
+- Required API keys and credentials
 
-```python
-async def run_target_shopping_task(
-    product_name: str,      # Product to search for (e.g., "protein bars")
-    first_name: str,        # Shipping first name
-    last_name: str,         # Shipping last name
-    address: str,           # Street address
-    unit: str,              # Apartment/unit number
-    city: str,              # City name
-    state: str,             # State abbreviation (e.g., "CA")
-    zip_code: str,          # ZIP code
-)
+## Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd shopping-agent-mcp
 ```
 
-The function will:
-1. Login to Target.com (skipping all popups)
-2. Search for `product_name` and find the cheapest relevant item
-3. Add the item to cart
-4. Proceed to checkout with "Shipping" method
-5. Fill in the shipping address with provided details
-6. Stop at the final order review page (does NOT place order)
-7. Report the item name and total amount
-
-## Environment Variables
-
-Create a `.env` file with:
-
+2. Install dependencies:
 ```bash
-BROWSER_USE_API_KEY=bu_your_api_key_here
-BROWSER_USE_PROFILE_ID=your_profile_id_here
-TARGET_EMAIL=your_target_email
-TARGET_PASSWORD=your_target_password
+pip install -r requirements.txt
+```
+
+3. Set up environment variables (see Configuration section below)
+
+## Configuration
+
+Create a `.env` file in the project root with the following variables:
+
+```env
+# Browser automation credentials
+BROWSER_USE_API_KEY=your_browser_use_api_key
+BROWSER_USE_PROFILE_ID=your_browser_use_profile_id
+
+# Target website credentials
+TARGET_EMAIL=your_email@example.com
+TARGET_PASSWORD=your_password
 PHONE_NUMBER=your_phone_number
 ```
-## Quick Start (Local Development)
+
+### Environment Variables Explained
+
+- **BROWSER_USE_API_KEY**: API key for browser automation service
+- **BROWSER_USE_PROFILE_ID**: Profile ID for browser automation
+- **TARGET_EMAIL**: Email for the target shopping website login
+- **TARGET_PASSWORD**: Password for the target shopping website login
+- **PHONE_NUMBER**: Phone number for verification (if required)
+
+## Usage
+
+### Starting the Server
+
+Run the server with:
 
 ```bash
-# Install uv package manager
-brew install uv  # or pip install uv
-
-# Install dependencies
-uv sync --no-dev
-
-# Test
-uv run python tests/test_server.py
-
-# Run
-uv run main
+python src/main.py
 ```
 
-## Project Structure
+The server will start and display available tools:
+```
+🛒 Starting Shopping Agent MCP Server...
+🔧 Available tools: shop_product
+```
+
+### Available Tools
+
+#### shop_product
+Searches for and purchases a specified product.
+
+**Parameters:**
+- `product_name` (string): Name of the product to search for
+- `max_price` (optional, number): Maximum price limit for the product
+- `quantity` (optional, number): Quantity to purchase (default: 1)
+
+**Example usage through MCP client:**
+```python
+# This is how an MCP client would call the tool
+result = await client.call_tool("shop_product", {
+    "product_name": "wireless headphones",
+    "max_price": 150,
+    "quantity": 2
+})
+```
+
+## Testing
+
+Run the test suite to verify server functionality:
+
+```bash
+python tests/test_server.py
+```
+
+Expected output:
+```
+Testing Shopping Agent MCP Server
+
+[OK] Server modules imported successfully
+
+Test 1: Server instance...
+[OK] mcp is FastMCP instance
+
+Test 2: Tool registration...
+[OK] shop_product tool is defined
+
+==================================================
+[SUCCESS] All tests passed! Server is ready.
+```
+
+## Development
+
+### Project Structure
 
 ```
-.
-├── pyproject.toml      # Package configuration with dependencies
-├── main.py             # Entry point (Dedalus expects this)
+shopping-agent-mcp/
 ├── src/
-│   ├── __init__.py
-│   └── main.py         # Main MCP server code
-├── config/
-│   └── .env.example    # Environment template
-└── tests/
-    └── test_server.py  # Server tests
+│   └── main.py          # Main server implementation
+├── tests/
+│   └── test_server.py    # Server tests
+├── requirements.txt      # Python dependencies
+├── .env.example          # Example environment variables
+└── README.md            # This file
 ```
 
-## Deploy to Dedalus
+### Adding New Tools
 
-```bash
-dedalus deploy . --name "shopping-agent"
+To add a new tool to the MCP server:
+
+1. Define the tool function in `src/main.py` with appropriate parameters
+2. Decorate it with `@mcp.tool()`
+3. Update the startup message in the `main()` function
+4. Add corresponding tests in `tests/test_server.py`
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Missing environment variables**
+   - Error: `ValueError: Missing required environment variables: ...`
+   - Solution: Ensure all required variables are set in your `.env` file
+
+2. **Import errors**
+   - Error: `ImportError: cannot import name 'mcp'`
+   - Solution: Check that you're running from the correct directory and all dependencies are installed
+
+3. **Browser automation failures**
+   - Issue: Tool fails to interact with browser
+   - Solution: Verify BROWSER_USE_API_KEY and BROWSER_USE_PROFILE_ID are valid
+
+### Debug Mode
+
+For detailed logging, you can modify the server startup:
+
+```python
+# In src/main.py, add logging
+import logging
+logging.basicConfig(level=logging.DEBUG)
 ```
+
+## Security Considerations
+
+- Never commit your `.env` file to version control
+- Use strong, unique passwords for TARGET_PASSWORD
+- Regularly rotate API keys
+- Consider using a password manager for credential storage
 
 ## License
 
-MIT
+[Add your license information here]
+
+## Support
+
+For issues and feature requests, please:
+1. Check the troubleshooting section above
+2. Review the existing GitHub issues
+3. Create a new issue with detailed reproduction steps
