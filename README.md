@@ -1,90 +1,199 @@
 # Shopping Agent MCP Server
 
-> **Automated Target.com shopping agent** — Search products, add to cart, and fill checkout with a single function call.
+A Model Context Protocol (MCP) server that provides shopping automation capabilities through browser automation tools.
 
 ## Overview
 
-This shopping agent uses [Browser Use SDK](https://browser-use.com) to automate the Target.com shopping experience. It maintains persistent login state via browser profiles and can:
+This MCP server enables AI assistants to perform shopping tasks on e-commerce websites. It provides tools for product search, price comparison, and automated purchasing workflows.
 
-- 🔐 **Login** to Target.com with stored credentials
-- 🔍 **Search** for specific products by name
-- 💰 **Find the cheapest** relevant product from search results
-- 🛒 **Add to cart** and proceed to checkout
-- 📦 **Fill shipping address** with provided information
-- 📸 **Stop before purchase** with screenshot of final order review
+## Features
 
-### Core Function: `run_target_shopping_task()`
+- **Product Search**: Find products across multiple retailers
+- **Price Comparison**: Compare prices for the same product
+- **Automated Purchasing**: Complete checkout processes automatically
+- **Browser Automation**: Uses Browser Use API for reliable web interactions
 
+## Quick Start
+
+### Prerequisites
+
+- Python 3.8 or higher
+- Browser Use API credentials
+- Target website account credentials
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/shopping-agent-mcp.git
+cd shopping-agent-mcp
+```
+
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Set up environment variables:
+```bash
+export BROWSER_USE_API_KEY="your_api_key"
+export BROWSER_USE_PROFILE_ID="your_profile_id"
+export TARGET_EMAIL="your_email@example.com"
+export TARGET_PASSWORD="your_password"
+export PHONE_NUMBER="+1234567890"
+```
+
+### Running the Server
+
+Start the MCP server:
+```bash
+python src/main.py
+```
+
+The server will start and be ready to accept connections via the MCP protocol.
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `BROWSER_USE_API_KEY` | API key for Browser Use service | Yes |
+| `BROWSER_USE_PROFILE_ID` | Profile ID for browser sessions | Yes |
+| `TARGET_EMAIL` | Email for target website login | Yes |
+| `TARGET_PASSWORD` | Password for target website login | Yes |
+| `PHONE_NUMBER` | Phone number for verification | Yes |
+
+### MCP Integration
+
+To use with Claude Desktop or other MCP clients:
+
+1. Add to your Claude Desktop configuration (`claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "shopping-agent": {
+      "command": "python",
+      "args": ["/path/to/shopping-agent-mcp/src/main.py"],
+      "env": {
+        "BROWSER_USE_API_KEY": "your_api_key",
+        "BROWSER_USE_PROFILE_ID": "your_profile_id",
+        "TARGET_EMAIL": "your_email@example.com",
+        "TARGET_PASSWORD": "your_password",
+        "PHONE_NUMBER": "+1234567890"
+      }
+    }
+  }
+}
+```
+
+## Available Tools
+
+### `shop_product`
+
+Search for and purchase products on target websites.
+
+**Parameters:**
+- `product_name` (string): Name of the product to search for
+- `max_price` (number, optional): Maximum price to consider
+- `quantity` (number, optional): Quantity to purchase (default: 1)
+- `preferred_retailer` (string, optional): Preferred retailer name
+
+**Returns:**
+- JSON object with purchase status, order details, and price information
+
+**Example Usage:**
 ```python
-async def run_target_shopping_task(
-    product_name: str,      # Product to search for (e.g., "protein bars")
-    first_name: str,        # Shipping first name
-    last_name: str,         # Shipping last name
-    address: str,           # Street address
-    unit: str,              # Apartment/unit number
-    city: str,              # City name
-    state: str,             # State abbreviation (e.g., "CA")
-    zip_code: str,          # ZIP code
-)
+# Through MCP client
+result = await client.call_tool("shop_product", {
+    "product_name": "wireless headphones",
+    "max_price": 150,
+    "quantity": 1,
+    "preferred_retailer": "Amazon"
+})
 ```
 
-The function will:
-1. Login to Target.com (skipping all popups)
-2. Search for `product_name` and find the cheapest relevant item
-3. Add the item to cart
-4. Proceed to checkout with "Shipping" method
-5. Fill in the shipping address with provided details
-6. Stop at the final order review page (does NOT place order)
-7. Report the item name and total amount
+## API Documentation
 
-## Environment Variables
+### Main Server (`src/main.py`)
 
-Create a `.env` file with:
+The server is built using FastMCP from the MCP Python SDK.
+
+**Functions:**
+- `main()`: Entry point that starts the MCP server
+- `get_env_vars()`: Validates and retrieves required environment variables
+
+### Tool Implementation (`src/tools/shop.py`)
+
+Contains the `shop_product` tool implementation with browser automation logic.
+
+## Testing
+
+Run the test suite to verify server functionality:
 
 ```bash
-BROWSER_USE_API_KEY=bu_your_api_key_here
-BROWSER_USE_PROFILE_ID=your_profile_id_here
-TARGET_EMAIL=your_target_email
-TARGET_PASSWORD=your_target_password
-PHONE_NUMBER=your_phone_number
+python -m pytest tests/
 ```
-## Quick Start (Local Development)
+
+Or run the manual test:
 
 ```bash
-# Install uv package manager
-brew install uv  # or pip install uv
-
-# Install dependencies
-uv sync --no-dev
-
-# Test
-uv run python tests/test_server.py
-
-# Run
-uv run main
+python tests/test_server.py
 ```
 
-## Project Structure
+## Development
+
+### Project Structure
 
 ```
-.
-├── pyproject.toml      # Package configuration with dependencies
-├── main.py             # Entry point (Dedalus expects this)
+shopping-agent-mcp/
 ├── src/
-│   ├── __init__.py
-│   └── main.py         # Main MCP server code
-├── config/
-│   └── .env.example    # Environment template
-└── tests/
-    └── test_server.py  # Server tests
+│   ├── main.py              # Server entry point
+│   └── tools/
+│       └── shop.py          # Shopping tool implementation
+├── tests/
+│   └── test_server.py       # Server tests
+├── requirements.txt         # Python dependencies
+└── README.md               # This file
 ```
 
-## Deploy to Dedalus
+### Adding New Tools
 
+1. Create a new tool function in `src/tools/`
+2. Decorate with `@mcp.tool()`
+3. Import and register in `src/main.py`
+4. Update documentation
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Missing environment variables**: Ensure all required variables are set
+2. **Browser Use API errors**: Verify API key and profile ID are valid
+3. **Login failures**: Check target website credentials
+4. **MCP connection issues**: Verify Claude Desktop configuration
+
+### Debug Mode
+
+Enable debug logging by setting environment variable:
 ```bash
-dedalus deploy . --name "shopping-agent"
+export DEBUG=true
 ```
+
+## Security Considerations
+
+- Store credentials in environment variables, not in code
+- Use secure password management
+- Regularly rotate API keys
+- Monitor for unauthorized access
 
 ## License
 
-MIT
+MIT License - see LICENSE file for details.
+
+## Support
+
+For issues and questions:
+1. Check the troubleshooting section
+2. Review existing GitHub issues
+3. Create a new issue with detailed information
