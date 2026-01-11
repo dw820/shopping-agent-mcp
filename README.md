@@ -1,90 +1,167 @@
 # Shopping Agent MCP Server
 
-> **Automated Target.com shopping agent** — Search products, add to cart, and fill checkout with a single function call.
+A Model Context Protocol (MCP) server that provides shopping automation capabilities through browser automation tools.
 
-## Overview
+## Features
 
-This shopping agent uses [Browser Use SDK](https://browser-use.com) to automate the Target.com shopping experience. It maintains persistent login state via browser profiles and can:
+- **Product Shopping Tool**: Automate product searches and purchases
+- **Browser Automation**: Uses BrowserUse API for web automation
+- **Environment Configuration**: Secure configuration via environment variables
+- **FastMCP Integration**: Built on the FastMCP framework for MCP servers
 
-- 🔐 **Login** to Target.com with stored credentials
-- 🔍 **Search** for specific products by name
-- 💰 **Find the cheapest** relevant product from search results
-- 🛒 **Add to cart** and proceed to checkout
-- 📦 **Fill shipping address** with provided information
-- 📸 **Stop before purchase** with screenshot of final order review
+## Quick Start
 
-### Core Function: `run_target_shopping_task()`
+### Prerequisites
 
-```python
-async def run_target_shopping_task(
-    product_name: str,      # Product to search for (e.g., "protein bars")
-    first_name: str,        # Shipping first name
-    last_name: str,         # Shipping last name
-    address: str,           # Street address
-    unit: str,              # Apartment/unit number
-    city: str,              # City name
-    state: str,             # State abbreviation (e.g., "CA")
-    zip_code: str,          # ZIP code
-)
+- Python 3.8 or higher
+- BrowserUse API key and profile ID
+- Target website credentials
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd shopping-agent-mcp
 ```
 
-The function will:
-1. Login to Target.com (skipping all popups)
-2. Search for `product_name` and find the cheapest relevant item
-3. Add the item to cart
-4. Proceed to checkout with "Shipping" method
-5. Fill in the shipping address with provided details
-6. Stop at the final order review page (does NOT place order)
-7. Report the item name and total amount
-
-## Environment Variables
-
-Create a `.env` file with:
-
+2. Install dependencies:
 ```bash
-BROWSER_USE_API_KEY=bu_your_api_key_here
-BROWSER_USE_PROFILE_ID=your_profile_id_here
-TARGET_EMAIL=your_target_email
-TARGET_PASSWORD=your_target_password
+pip install -r requirements.txt
+```
+
+3. Set up environment variables (see Configuration section below)
+
+### Configuration
+
+Create a `.env` file in the project root with the following variables:
+
+```env
+# BrowserUse API Configuration
+BROWSER_USE_API_KEY=your_browseruse_api_key
+BROWSER_USE_PROFILE_ID=your_profile_id
+
+# Target Website Credentials
+TARGET_EMAIL=your_email@example.com
+TARGET_PASSWORD=your_password
 PHONE_NUMBER=your_phone_number
 ```
-## Quick Start (Local Development)
+
+### Running the Server
+
+Start the MCP server:
 
 ```bash
-# Install uv package manager
-brew install uv  # or pip install uv
-
-# Install dependencies
-uv sync --no-dev
-
-# Test
-uv run python tests/test_server.py
-
-# Run
-uv run main
+python src/main.py
 ```
 
-## Project Structure
+The server will start and display available tools.
+
+## Available Tools
+
+### shop_product
+
+Automates the process of searching for and purchasing a product.
+
+**Parameters:**
+- `product_name` (string): The name of the product to search for
+- `max_price` (optional, number): Maximum price limit for the product
+- `quantity` (optional, number): Quantity to purchase (default: 1)
+
+**Returns:**
+- JSON object with purchase status and details
+
+**Example Usage:**
+```python
+# Through MCP client
+result = await client.call_tool("shop_product", {
+    "product_name": "wireless headphones",
+    "max_price": 150,
+    "quantity": 2
+})
+```
+
+## Development
+
+### Project Structure
 
 ```
-.
-├── pyproject.toml      # Package configuration with dependencies
-├── main.py             # Entry point (Dedalus expects this)
+shopping-agent-mcp/
 ├── src/
-│   ├── __init__.py
-│   └── main.py         # Main MCP server code
-├── config/
-│   └── .env.example    # Environment template
-└── tests/
-    └── test_server.py  # Server tests
+│   └── main.py          # Main server implementation
+├── tests/
+│   └── test_server.py   # Server tests
+├── requirements.txt     # Python dependencies
+└── README.md           # This file
 ```
 
-## Deploy to Dedalus
+### Testing
+
+Run the test suite:
 
 ```bash
-dedalus deploy . --name "shopping-agent"
+python tests/test_server.py
 ```
+
+### Dependencies
+
+Key dependencies:
+- `mcp`: Model Context Protocol framework
+- `browser-use`: Browser automation library
+- `python-dotenv`: Environment variable management
+
+See `requirements.txt` for complete list.
+
+## API Reference
+
+### Main Server (`src/main.py`)
+
+#### `main() -> None`
+Starts the MCP server with streamable HTTP transport.
+
+#### `get_env_vars() -> dict`
+Retrieves and validates required environment variables.
+
+**Returns:** Dictionary of environment variables
+
+**Raises:** `ValueError` if any required variable is missing
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `BROWSER_USE_API_KEY` | API key for BrowserUse service | Yes |
+| `BROWSER_USE_PROFILE_ID` | Profile ID for browser automation | Yes |
+| `TARGET_EMAIL` | Email for target website login | Yes |
+| `TARGET_PASSWORD` | Password for target website login | Yes |
+| `PHONE_NUMBER` | Phone number for verification | Yes |
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Missing environment variables**
+   - Ensure all required variables are set in `.env` file
+   - Check variable names for typos
+
+2. **Import errors**
+   - Verify all dependencies are installed: `pip install -r requirements.txt`
+   - Check Python version compatibility
+
+3. **Browser automation failures**
+   - Verify BrowserUse API key and profile ID are valid
+   - Check target website accessibility
+
+### Getting Help
+
+- Check the test output: `python tests/test_server.py`
+- Review environment variable configuration
+- Ensure network connectivity to BrowserUse API
 
 ## License
 
-MIT
+[Add license information here]
+
+## Contributing
+
+[Add contribution guidelines here]
